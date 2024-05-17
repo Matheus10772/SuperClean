@@ -1,0 +1,137 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema clean
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema clean
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `clean` DEFAULT CHARACTER SET utf8 ;
+USE `clean` ;
+
+-- -----------------------------------------------------
+-- Table `clean`.`User`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `clean`.`User` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  `firstName` VARCHAR(64) NOT NULL,
+  `lastName` VARCHAR(64) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `phone` VARCHAR(32) NOT NULL,
+  `street` VARCHAR(255) NOT NULL,
+  `userType` TINYINT(1) NOT NULL,
+  `profilePhotoPath` VARCHAR(255) NULL,
+  `PPS` INT NOT NULL,
+  `enabled` TINYINT NOT NULL DEFAULT 1,
+  PRIMARY KEY (`ID`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `clean`.`clientUser`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `clean`.`clientUser` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  `User_ID` INT NOT NULL,
+  `criminalRecordPath` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`ID`),
+  INDEX `fk_clientUser_User1_idx` (`User_ID` ASC) VISIBLE,
+  CONSTRAINT `fk_clientUser_User1`
+    FOREIGN KEY (`User_ID`)
+    REFERENCES `clean`.`User` (`ID`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `clean`.`cleanerUser`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `clean`.`cleanerUser` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  `User_ID` INT NOT NULL,
+  `minValuePerHour` DECIMAL NULL,
+  `maxValuePerHour` DECIMAL NULL,
+  `criminalRecordPath` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`ID`),
+  INDEX `fk_cleanerUser_User_idx` (`User_ID` ASC) VISIBLE,
+  CONSTRAINT `fk_cleanerUser_User`
+    FOREIGN KEY (`User_ID`)
+    REFERENCES `clean`.`User` (`ID`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `clean`.`service`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `clean`.`service` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  `cleanerUser_ID` INT NOT NULL,
+  `clientUser_ID` INT NOT NULL,
+  `latitude` DECIMAL(10,8) NOT NULL,
+  `longitude` DECIMAL(11,8) NOT NULL,
+  `distance` DECIMAL NULL,
+  `price` DECIMAL NOT NULL,
+  `startTime` DATETIME NOT NULL,
+  `endTime` DATETIME NOT NULL,
+  PRIMARY KEY (`ID`),
+  INDEX `fk_service_cleanerUser1_idx` (`cleanerUser_ID` ASC) VISIBLE,
+  INDEX `fk_service_clientUser1_idx` (`clientUser_ID` ASC) VISIBLE,
+  CONSTRAINT `fk_service_cleanerUser1`
+    FOREIGN KEY (`cleanerUser_ID`)
+    REFERENCES `clean`.`cleanerUser` (`ID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_service_clientUser1`
+    FOREIGN KEY (`clientUser_ID`)
+    REFERENCES `clean`.`clientUser` (`ID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `clean`.`rating`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `clean`.`rating` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  `service_ID` INT NOT NULL,
+  `cleanerUser_ID` INT NOT NULL,
+  `clientUser_ID` INT NOT NULL,
+  `cleanerComment` VARCHAR(512) NULL,
+  `clientComment` VARCHAR(512) NULL,
+  `cleanerRating` TINYINT NULL,
+  `clientCommetn` TINYINT NULL,
+  `public` TINYINT NOT NULL DEFAULT 1,
+  PRIMARY KEY (`ID`),
+  INDEX `fk_rating_service1_idx` (`service_ID` ASC) VISIBLE,
+  INDEX `fk_rating_cleanerUser1_idx` (`cleanerUser_ID` ASC) VISIBLE,
+  INDEX `fk_rating_clientUser1_idx` (`clientUser_ID` ASC) VISIBLE,
+  CONSTRAINT `fk_rating_service1`
+    FOREIGN KEY (`service_ID`)
+    REFERENCES `clean`.`service` (`ID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_rating_cleanerUser1`
+    FOREIGN KEY (`cleanerUser_ID`)
+    REFERENCES `clean`.`cleanerUser` (`ID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_rating_clientUser1`
+    FOREIGN KEY (`clientUser_ID`)
+    REFERENCES `clean`.`clientUser` (`ID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
